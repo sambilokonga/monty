@@ -1,30 +1,16 @@
 #ifndef MONTY_H
 #define MONTY_H
 
+/* INCLUDED LIBRARIES */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdbool.h>
-#include <ctype.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-/**
- * struct stack_s - doubly linked list representation of a stack (or queue)
- * @n: integer
- * @prev: points to the previous element of the stack (or queue)
- * @next: points to the next element of the stack (or queue)
- *
- * Description: doubly linked list node structure
- * for stack, queues, LIFO, FIFO Holberton project
- */
-typedef struct arg_s
-{
-	int arg;
-	int flag;
-} arg_t;
-
-extern arg_t arg;
-
+/* STRUCTS AND DEFINITIONS */
 /**
  * struct stack_s - doubly linked list representation of a stack (or queue)
  * @n: integer
@@ -56,69 +42,90 @@ typedef struct instruction_s
 } instruction_t;
 
 /**
- * struct line - contents of line and corresponding number
- * @contents: array of tokens read from the line
- * @number: the line number
+ * struct variable_s - opcode string and file pointer fd
+ * @opcode: the opcode string
+ * @fd: file pointer
  *
- * Description: contents of a line and corresponding number
+ * Description: struct to hold opcode and file pointer
+ * as global variable to be able to free all variables
  */
-typedef struct line
+typedef struct variable_s
 {
-	unsigned int number;
-	char **content;
-} line_t;
+	char *opcode;
+	FILE *fd;
+} variable_t;
 
-/**
- * struct stack_s - doubly linked list representation of a stack (or queue)
- * @n: integer
- * @prev: points to the previous element of the stack (or queue)
- * @next: points to the next element of the stack (or queue)
- *
- * Description: doubly linked list node structure
- * for stack, queues, LIFO, FIFO Holberton project
- */
-typedef struct meta_s
-{
-	char *buf;
-	stack_t *stack;
-	FILE *file;
-} meta_t;
+/* FUNCTION PROTOTYPES AND GLOBAL VARIABLE*/
+extern variable_t global;
 
-/* Important functions */
-void (*get_op_func(line_t line, meta_t *meta))(stack_t **, unsigned int);
-int _isalpha(int c);
+/* function to check initial conditions and open the file */
+FILE *opening_func(int argc, char *argv[]);
 
-/* Parse functions */
-void parsefile(FILE *file);
-void parseline(line_t *line, char *buffer);
+/* function to parse first opcode and needed arguments from line read */
+char *getopcode(char **str);
 
-/* Verification functions */
-bool comment_check(line_t line);
-void push_check(line_t line, meta_t *meta, char *opcode);
+/* function to add node to stack (push opcode) */
+stack_t *addnode(char *opcode, stack_t **stack, unsigned int line_number);
 
-/* Stack manipulation functions */
-void push(stack_t **stack, unsigned int nline);
-void pall(stack_t **stack, unsigned int nline);
-void pint(stack_t **stack, unsigned int nline);
-void pop(stack_t **stack, unsigned int nline);
-void swap(stack_t **stack, unsigned int nline);
-void nop(stack_t **stack, unsigned int nline);
-void rotl(stack_t **stack, unsigned int nline);
-void rotlop(stack_t **stack, unsigned int nline);
-void rotrop(stack_t **stack, unsigned int nline);
-void pchar(stack_t **stack, unsigned int nline);
-void pstr(stack_t **stack, unsigned int nline);
-void free_stack(stack_t **stack);
-void nop(stack_t **stack, unsigned int nline);
-void qpush(stack_t **stack, unsigned int nline);
-void addqu(stack_t **stack, unsigned int nline);
-void addst(stack_t **stack, unsigned int nline);
+/* function to match opcode to specific function */
+stack_t *findinstruction(char *opcode, stack_t **stack,
+			 unsigned int line_number);
 
-/* Math functions */
-void subop(stack_t **stack, unsigned int nline);
-void addop(stack_t **stack, unsigned int nline);
-void divop(stack_t **stack, unsigned int nline);
-void mulop(stack_t **stack, unsigned int nline);
-void modop(stack_t **stack, unsigned int nline);
+/* function to print all elements of the stack */
+void pall_func(stack_t **stack, unsigned int line_number);
+
+/* function to print integer at top of stack */
+void pint_func(stack_t **stack, unsigned int line_number);
+
+/* function to swap the top two integers on the stack */
+void swap_func(stack_t **stack, unsigned int line_number);
+
+/* function to add the top two integers on the stack & replace the top value*/
+void add_func(stack_t **stack, unsigned int line_number);
+
+/* function to delete top of stack */
+void pop_func(stack_t **stack, unsigned int line_number);
+
+/* function to subtract top two integers on the stack & replace the top value*/
+void sub_func(stack_t **stack, unsigned int line_number);
+
+/* function to multiply top two integers on the stack & replace the top value*/
+void mul_func(stack_t **stack, unsigned int line_number);
+
+/* function to divide top two integers on the stack & replace the top value*/
+void div_func(stack_t **stack, unsigned int line_number);
+
+/* function to modulo top two integers on the stack & replace the top value*/
+void mod_func(stack_t **stack, unsigned int line_number);
+
+/* function to print top of stack as ascii character */
+void pchar_func(stack_t **stack, unsigned int line_number);
+
+/* function to print stack as string */
+void pstr_func(stack_t **stack, unsigned int line_number);
+
+/* function to rotate stack so the top element becomes the last */
+void rotl_func(stack_t **stack, unsigned int line_number);
+
+/* function to rotate stack so the last element becomes the top */
+void rotr_func(stack_t **stack, unsigned int line_number);
+
+/* function to catch empty lines or newlines from invalid command */
+void nop_func(stack_t **stack, unsigned int line_number);
+
+/* function to free all elements of stack */
+void free_stack(stack_t *stack);
+
+/* function to print error message, free everything, & exit if push arg fails*/
+void free_for_exit_push(unsigned int line_number, stack_t *stack);
+
+/* function to print error message, free everything, & exit if malloc fails */
+void free_for_exit_malloc(stack_t *stack);
+
+/* function to print free everything & exit for general error */
+void free_for_exit_error(stack_t *stack);
+
+/* function to check if char is digit */
+int _isdigit(int c);
 
 #endif /* MONTY_H */
